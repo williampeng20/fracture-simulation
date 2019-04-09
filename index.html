@@ -5,7 +5,61 @@
 </head>
 
 <body>
+    <h1 style="text-align: center">Object Collision and Fracturing</h1>
 
+    <table style="text-align: center">
+        <tr>
+            <td style="width:1%">
+                <h2>William Peng</h2>
+                <h3>wpen@berkeley.edu</h3>
+            <td style="width:1%">
+                <h2>Michelle Grace Wang</h2>
+                <h3>mgwang@berkeley.edu</h3>
+            <td style="width:1%">
+                <h2>Christopher Amezquita</h2>
+                <h3>christohperameqzuita@berkeley.edu</h3>
+        </tr>
+    </table>
+
+    <p>
+        In this Project, we will be implementing a system for object collisions and simulating the fractures from these collisions. We will also be using this system to simulate different types of materials and how realistically 
+        they will interact with each other.
+    </p>
+
+    <h3>Problem Description</h3>
+
+    <p>
+        Watching any modern Hollywood movie, the common destructive effects such as explosions and large-scale collisions become impossible for practical effects to be used. Therefore, the industry has turned to using computer graphics
+        to create these effects. Simulating the collision, fracturing, and destruction of objects will allow us to solve this problem, but the challenge lies in detecting a collision between objects, and then calculating how a collision
+        changes the topology of the objects, even creating multiple sub-objects. This is important as in the real world, when objects collide there is the possibility that one of the objects takes too much force and breaks from impact. 
+        This system will allow us to simulate this interaction and model it in the digital space. Building this system will be challenging, as we will need to determine the way and place pressure is accumulated in different materials 
+        to model realistic fracturing behavior.
+    </p>
+
+    <h3>Resources</h3>
+
+    <p>
+        We will be building our collision and fracture system inside of Blender in order to make use of the rendering framework and animation timeline already built. Blender is built upon Python, and has its own API to import
+        Python scripts. We will be referencing this API here: <a href="https://docs.blender.org/api/blender_python_api_2_77_0/info_overview.html">https://docs.blender.org/api/blender_python_api_2_77_0/info_overview.html</a><br>
+        We will be rendering our Blender simulations on our personal computers and desktops, which run on MacOS. 
+    </p>
+
+    <p>
+        In order to analyze how successful and realistic our system will be, we will attempt to replicate <a href="https://www.youtube.com/watch?v=v30b5IAgwQw">this scene</a> and compare it to our simulation. We will also compare
+        our results to other implementations of simulating fractures, such as <a href="http://blenderphysics.com/fracturemodifier/">voronoi cell fracture</a> and
+        <a href="https://www.blendernation.com/2017/10/13/fracture-modifier-based-2-79/">the official Blender fracture modifier</a>, as well as how our rendering time and performance compare up as well.
+    </p>
+
+    <p>
+        We will be using these technical papers as well to model our collision and fracturing algorithms. <br>
+        Küçükyılmaz, Ayşe, and Ӧzgüç, Bülent H. "An Animation System for Fracturing of Rigid Objects." <i>Computer and Information Sciences - ISCIS 2005: 20th International Symposium, Istanbul, Turkey, 
+            October 26-28, 2005. Proceedings</i>. 2005. <br>
+        Su, Jonathon, et al. "Energy Stability and Fracture for Frame Rate Rigid Body Simulations." <i>ACM SIGGRAPH Symposium on Computer Animation</i>. 2009.
+    </p>
+    <div style="display: inline">
+        <embed src="papers/An_animation_system_for_fracturing_of_ri.pdf" type="application/pdf" width="49%" height="100%" />
+        <embed src="papers/Energy Stability and Fracture for Frame Rate Rigid Body Simulations.pdf" type="application/pdf" width="49%" height="100%" />
+    </div>
 </body>
 
 </html>
