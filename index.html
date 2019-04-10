@@ -22,7 +22,7 @@
     </table>
 
     <p>
-        In this Project, we will be implementing a system for object collisions and simulating the fractures from these collisions. We will also be using this system to simulate different types of materials and how realistically 
+        In this Project, we will be implementing a system for object collisions and simulating the fractures from these collisions. We will also be using this system to simulate different types of materials and how realistically
         they will interact with each other.
     </p>
 
@@ -31,19 +31,39 @@
     <p>
         Watching any modern Hollywood movie, the common destructive effects such as explosions and large-scale collisions become impossible for practical effects to be used. Therefore, the industry has turned to using computer graphics
         to create these effects. Simulating the collision, fracturing, and destruction of objects will allow us to solve this problem, but the challenge lies in detecting a collision between objects, and then calculating how a collision
-        changes the topology of the objects, even creating multiple sub-objects. This is important as in the real world, when objects collide there is the possibility that one of the objects takes too much force and breaks from impact. 
-        This system will allow us to simulate this interaction and model it in the digital space. Building this system will be challenging, as we will need to determine the way and place pressure is accumulated in different materials 
+        changes the topology of the objects, even creating multiple sub-objects. This is important as in the real world, when objects collide there is the possibility that one of the objects takes too much force and breaks from impact.
+        This system will allow us to simulate this interaction and model it in the digital space. Building this system will be challenging, as we will need to determine the way and place pressure is accumulated in different materials
         to model realistic fracturing behavior.
     </p>
 
     <h3>Goals and Deliverables</h3>
+
+    <h5>Visuals and Deliverables</h5>
+
+    <h6>What we plan to deliver</h6>
+
+    <p>
+      We will divide the objects we are presenting into two categories: Imapct objects and stressors. Our visuals will clearly demonstrate different crucial stages in our impact and fracturing simulation. The impact object structure
+      will be a wall and will differ between its materials; this includes wood, glass, clay and concrete. The stressors will be a basebal, a bullet and a bat - all with appropriately realistic material makeups. We will demonstrate
+      accelerated impacts (such as a bullet being fired) as well as the effects of the stressors falling on the impact objects. We will define our crucial impact stages into three categories: pre-impact, mid-impact and post-impact with
+      most focus on mid-impact and using post-impact and pre-impact mostly as visual frames of reference. Each of these scenes will be focused on the two objects that will impact, meaning that lighting will only be used to make our objects
+      of interest clear and visible and our backgrounds will be kept minimal so as to not be distracting.
+    </p>
+
+    <h6>What we would like to deliver</h6>
+
+    <p>
+      If all things go well, we would like to make the lighting and background more visually pleasing as a start. We would also like two add two additional things to our presentation: A wider range of materials and a more diverse and interesting
+      structres. Extra materials would include snow, water (in a balloon), plastic, metal and pasta (cooked). Additional shapes would include wheels, cubes, pyramids and common objects such as toasters and chairs. We would ideally like this project
+      to be useable as comoprehensive impact and fracturing simulator.
+    </p>
 
     <h5>How to measure the quality/performance of our system</h5>
 
     <p>
         The performance of our system will be defined by the amount of particles we can represent in our simulation, the higher being better as it can represent simulations in higher definition. Overall, our performance will scale to the robustness of our system. Some elements that would define this would include the complexity of the mesh we are able to represent, in terms of both number of triangles, as well as the number of different materials within a mesh. The ability to toggle variables such as projectile weight, speed, and acceleration: while a stretch goal, would make our system extremely robust in its ability to represent a greater range of simulations.
 
-        The accuracy of our system will be defined by it’s adherence to the laws of physics. Both the effects of gravity and the destruction of the material must realistically model the effects of the forces arising from the projectile colliding with the brittle material. 
+        The accuracy of our system will be defined by it’s adherence to the laws of physics. Both the effects of gravity and the destruction of the material must realistically model the effects of the forces arising from the projectile colliding with the brittle material.
 
         Potentially we can replicate a few scenarios in real life to compare if the brittle material behaves in the correct fashion, but this process may be irreproducible and cost intensive. It can provide a rough estimate of fracture geometry which we can use to error-check our own results.
     </p>
@@ -51,17 +71,52 @@
     <h5>What questions do we hope to answer with our analysis</h5>
 
     <p>
-        Through our analysis, we hope to answer whether a realistic modeling of brittle material fracturing can be achieved. If this is the case, we would hope to understand whether the interaction between a projectile and a brittle material colliding is a deterministic one. 
+        Through our analysis, we hope to answer whether a realistic modeling of brittle material fracturing can be achieved. If this is the case, we would hope to understand whether the interaction between a projectile and a brittle material colliding is a deterministic one.
 
         Additionally, if our system is built up to include features such as multi-material meshes, or user modifiable meshes, we would hope to answer more questions on mesh structural strength. Which structural features of a mesh of certain properties can help reduce fracture impact? What makes a mesh strong and how can a mesh be reinforced with minimal complexity? Conversely, what structural features are "weak spots" in a mesh?
     </p>
+
+
+    <h3>Schedule</h3>
+
+    <ul>
+      <li><b>Week 1: Conduct research and familiarize with tools</b></li>
+        <ul>
+          <li>Read research papers and tutorials about impact and fracturing for graphics</li>
+          <li>Research qualities of desired materials and objects</li>
+          <li>Understand how to work with Blender</li>
+          <li>Learn Blender's Python API</li>
+          <li>Instantiate objects in Blender environment</li>
+          <li>Test movement and forces on objects</li>
+        </ul>
+      <li><b>Week 2: Integrate rigid body simulation</b></li>
+        <ul>
+          <li>Detect collision</li>
+          <li>Calculate resulting forces of impact</li>
+          <li>Apply these forces in our code</li>
+        </ul>
+      <li><b>Week 3: Integrate fracture simulation</b></li>
+        <ul>
+          <li>Integrate lattice model of connections</li>
+          <li>Integrate connection strengths algorithm</li>
+        </ul>
+      <li><b>Week 4: Prepare and finalize deliverables</b></li>
+        <ul>
+          <li>Make simulation clear and aesthetic</li>
+          <li>Render our images and video</li>
+          <li>Prepare webpage</li>
+          <li>Put together video</li>
+          <li>Any finishing touches</li>
+        </ul>
+    </ul>
+
 
     <h3>Resources</h3>
 
     <p>
         We will be building our collision and fracture system inside of Blender in order to make use of the rendering framework and animation timeline already built. Blender is built upon Python, and has its own API to import
         Python scripts. We will be referencing this API here: <a href="https://docs.blender.org/api/blender_python_api_2_77_0/info_overview.html">https://docs.blender.org/api/blender_python_api_2_77_0/info_overview.html</a><br>
-        We will be rendering our Blender simulations on our personal computers and desktops, which run on MacOS. 
+        We will be rendering our Blender simulations on our personal computers and desktops, which run on MacOS.
     </p>
 
     <p>
@@ -72,7 +127,7 @@
 
     <p>
         We will be using these technical papers as well to model our collision and fracturing algorithms. <br>
-        Küçükyılmaz, Ayşe, and Ӧzgüç, Bülent H. "An Animation System for Fracturing of Rigid Objects." <i>Computer and Information Sciences - ISCIS 2005: 20th International Symposium, Istanbul, Turkey, 
+        Küçükyılmaz, Ayşe, and Ӧzgüç, Bülent H. "An Animation System for Fracturing of Rigid Objects." <i>Computer and Information Sciences - ISCIS 2005: 20th International Symposium, Istanbul, Turkey,
             October 26-28, 2005. Proceedings</i>. 2005. <br>
         Su, Jonathon, et al. "Energy Stability and Fracture for Frame Rate Rigid Body Simulations." <i>ACM SIGGRAPH Symposium on Computer Animation</i>. 2009.
     </p>
