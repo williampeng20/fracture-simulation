@@ -11,6 +11,7 @@ def clear_scene():
     for obj in bpy.data.objects:
         obj.select = True
     bpy.ops.object.delete()
+    lattice.SCENE_OBJECTS = []
 
 clear_scene()
 
@@ -61,7 +62,7 @@ plane_vertices = [
 for i in range(0, len(plane_vertices)):
     bpy.data.objects['Plane'].data.vertices[i].co.x *= 8
     bpy.data.objects['Plane'].data.vertices[i].co.y *= 8
-    bpy.data.objects['Plane'].data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 2 + 0.5
+    bpy.data.objects['Plane'].data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 4 + 0.25
 
 '''plane_mesh_data = bpy.data.meshes.new("plane_mesh_data")
 plane_mesh_data.from_pydata(plane_vertices, plane_edges, plane_faces)
