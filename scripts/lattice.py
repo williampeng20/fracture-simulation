@@ -10,6 +10,7 @@ DAMPENING_FACTOR = 10.0
 ALPHA = 0.5
 TAU = 0.4
 COLLISION_THRESHOLD = 0.0001
+MAX_ADAPTIVE_LOOPS = 20
 
 SCENE_OBJECTS = []
 
@@ -105,7 +106,7 @@ class SceneObject:
                     if is_inside(vertex, obj.obj):
                         adaptive_disp = disp*0.5
                         collision_point = vertex - adaptive_disp
-                        count = 20
+                        count = MAX_ADAPTIVE_LOOPS
                         while count > 0:
                             _, point, normal, _ = obj.obj.closest_point_on_mesh(collision_point)
                             p2 = point-collision_point
