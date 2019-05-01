@@ -13,7 +13,7 @@ def is_inside(p, obj):
     return not(v < 0.0)
 
 class CubeParticle:
-    
+
     def __init__(self, parent, location):
         self.parent = parent
         self.center = location
@@ -25,7 +25,7 @@ class CubeParticle:
         for neighbor in neighbors:
             self.connections[neighbor] = 1.0
 
-        
+
 class SceneObject:
 
     #Collection of Particles
@@ -58,6 +58,7 @@ class SceneObject:
         self.height = 0
         self.depth = 0
 
+    #for now we assume that the cube is perfectly xyz-axis-aligned
     def generate_mesh(self, width, length, height, x, y, z, res):
         # width = x-axis, length = y-axis, height = z-axis
         particles = [[[CubeParticle(self, mathutils.Vector((x + i*res, y + j*res, z + k*res))) for k in range(0, math.ceil(height / res))] for j in range(0, math.ceil(length / res))] for i in range(0, math.ceil(width / res))]
@@ -90,10 +91,10 @@ class SceneObject:
             vertex += disp
         for particle in self.particles:
             particle.center += disp
-    
+
     #Input: List of adjacent particles to split from this scene object
     #Modifies self to account for splitting objects
-    #Output: Reference to splitted object 
+    #Output: Reference to splitted object
     def split(self, particles):
         return
 
