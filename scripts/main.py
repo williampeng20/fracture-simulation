@@ -75,7 +75,7 @@ lattice.SCENE_OBJECTS.append(plane)
 
 #v = mathutils.Vector((0,0,0))
 #a = mathutils.Vector((0,0,-9.8))
-for f in range(0,100):
+for f in range(0,250):
     cube.move()
     cube.obj.keyframe_insert(data_path="location", frame=f)
 

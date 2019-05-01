@@ -11,6 +11,7 @@ ALPHA = 0.5
 TAU = 0.4
 COLLISION_THRESHOLD = 0.0001
 MAX_ADAPTIVE_LOOPS = 20
+BOUNCE_FACTOR = 0.25
 
 SCENE_OBJECTS = []
 
@@ -102,6 +103,7 @@ class SceneObject:
         for obj in SCENE_OBJECTS:
             if obj is not self and self.detect_collision(obj):
                 correction = 0.0
+                normal = mathutils.Vector((0,0,0))
                 for vertex in self.vertices:
                     if is_inside(vertex, obj.obj):
                         adaptive_disp = disp*0.5
@@ -111,14 +113,14 @@ class SceneObject:
                             _, point, normal, _ = obj.obj.closest_point_on_mesh(collision_point)
                             p2 = point-collision_point
                             v = p2.dot(normal)
-                            print(v)
+                            #print(v)
                             if abs(v) < COLLISION_THRESHOLD:
                                 break
                             else:
                                 adaptive_disp *= 0.5
                                 collision_point += adaptive_disp * (1 if v < 0.0 else -1)
                                 count -= 1
-                        print("done")
+                        #print("done")
                         disp_vector = collision_point - vertex
                         d = disp_vector.dot(disp_vector)**0.5 / disp.dot(disp)**0.5
                         correction = max(correction, d)
@@ -126,7 +128,8 @@ class SceneObject:
                 for vertex in self.vertices:
                     vertex -= correction*disp
                 disp *= 1 - correction
-                self.v = mathutils.Vector((0,0,0))
+                #self.v = mathutils.Vector((0,0,0))
+                self.v += self.v.length * normal * BOUNCE_FACTOR - self.v.dot(-normal) / (normal.length) * (-normal).normalized()
 
         self.obj.location += disp
         for particle in self.particles:
