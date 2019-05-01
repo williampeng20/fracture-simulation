@@ -2,6 +2,7 @@ import bpy
 import mathutils
 import bmesh
 import lattice
+import os
 
 # To start from console for console output:
 # "/Applications/Blender/blender.app/Contents/MacOS/blender"
@@ -10,6 +11,7 @@ def clear_scene():
     for obj in bpy.data.objects:
         obj.select = True
     bpy.ops.object.delete()
+    lattice.SCENE_OBJECTS = []
 
 clear_scene()
 
@@ -40,6 +42,10 @@ cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
 scene.objects.link(cube_obj)
 
 cube = lattice.SceneObject(0.5, cube_vertices, cube_obj)
+lattice.SCENE_OBJECTS.append(cube)
+
+'''obj_path = "/Users/williampeng/Documents/CS-184/fracture-simulation/objects/freedom7.obj"
+freedom7_obj = bpy.ops.import_scene.obj(filepath=obj_path)'''
 
 bpy.ops.mesh.primitive_cube_add()
 for obj in bpy.context.selected_objects:
@@ -56,7 +62,7 @@ plane_vertices = [
 for i in range(0, len(plane_vertices)):
     bpy.data.objects['Plane'].data.vertices[i].co.x *= 8
     bpy.data.objects['Plane'].data.vertices[i].co.y *= 8
-    bpy.data.objects['Plane'].data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 2 + 0.5
+    bpy.data.objects['Plane'].data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 4 + 0.25
 
 '''plane_mesh_data = bpy.data.meshes.new("plane_mesh_data")
 plane_mesh_data.from_pydata(plane_vertices, plane_edges, plane_faces)
@@ -65,6 +71,7 @@ plane_obj = bpy.data.objects.new("Plane", plane_mesh_data)
 scene.objects.link(plane_obj)'''
 
 plane = lattice.SceneObject(0.5, plane_vertices, bpy.data.objects['Plane'])
+lattice.SCENE_OBJECTS.append(plane)
 
 #v = mathutils.Vector((0,0,0))
 #a = mathutils.Vector((0,0,-9.8))
@@ -72,8 +79,8 @@ for f in range(0,100):
     cube.move()
     cube.obj.keyframe_insert(data_path="location", frame=f)
 
-    if cube.detect_collision(plane):
-        break
+    #if cube.detect_collision(plane):
+        #break
     
 
 

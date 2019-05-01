@@ -1,8 +1,18 @@
 import bpy
 import mathutils
 import math
+import random
 
 PARTICLE_MASS = 0
+BREAKING_THRESHOLD = 0.2
+BOND_STRENGTH = 1.0
+DAMPENING_FACTOR = 10.0
+ALPHA = 0.5
+TAU = 0.4
+COLLISION_THRESHOLD = 0.0001
+MAX_ADAPTIVE_LOOPS = 20
+
+SCENE_OBJECTS = []
 
 def is_inside(p, obj):
     # max_dist = 1.84467e+19
@@ -23,7 +33,7 @@ class CubeParticle:
 
     def add_neighbors(self, neighbors):
         for neighbor in neighbors:
-            self.connections[neighbor] = 1.0
+            self.connections[neighbor] = BOND_STRENGTH
 
 
 class SceneObject:
@@ -52,7 +62,7 @@ class SceneObject:
         height = max(z) - min(z)
         self.generate_mesh(width, length, height, min(x), min(y), min(z), resolution)
         self.res = resolution
-        #self.mass = sum([p.mass for p in self.particles])
+        self.mass = sum([p.mass for p in self.particles])
 
         self.width = 0
         self.height = 0
@@ -86,9 +96,40 @@ class SceneObject:
         t = 1 / bpy.data.scenes['Scene'].render.fps
         disp = self.v*t + 0.5*self.a*t**2
         self.v += self.a*t
-        self.obj.location += disp
+
         for vertex in self.vertices:
             vertex += disp
+        # Check for collision
+        for obj in SCENE_OBJECTS:
+            if obj is not self and self.detect_collision(obj):
+                correction = 0.0
+                for vertex in self.vertices:
+                    if is_inside(vertex, obj.obj):
+                        adaptive_disp = disp*0.5
+                        collision_point = vertex - adaptive_disp
+                        count = MAX_ADAPTIVE_LOOPS
+                        while count > 0:
+                            _, point, normal, _ = obj.obj.closest_point_on_mesh(collision_point)
+                            p2 = point-collision_point
+                            v = p2.dot(normal)
+                            print(v)
+                            if abs(v) < COLLISION_THRESHOLD:
+                                break
+                            else:
+                                adaptive_disp *= 0.5
+                                collision_point += adaptive_disp * (1 if v < 0.0 else -1)
+                                count -= 1
+                        print("done")
+                        disp_vector = collision_point - vertex
+                        d = disp_vector.dot(disp_vector)**0.5 / disp.dot(disp)**0.5
+                        correction = max(correction, d)
+                        assert correction < 1
+                for vertex in self.vertices:
+                    vertex -= correction*disp
+                disp *= 1 - correction
+                self.v = mathutils.Vector((0,0,0))
+
+        self.obj.location += disp
         for particle in self.particles:
             particle.center += disp
 
