@@ -11,7 +11,8 @@ ALPHA = 0.5
 TAU = 0.4
 COLLISION_THRESHOLD = 0.0001
 MAX_ADAPTIVE_LOOPS = 20
-BOUNCE_FACTOR = 0.25
+BOUNCE_FACTOR = 0.2
+FRICTION = 0.3
 
 SCENE_OBJECTS = []
 
@@ -129,7 +130,7 @@ class SceneObject:
                     vertex -= correction*disp
                 disp *= 1 - correction
                 #self.v = mathutils.Vector((0,0,0))
-                self.v += self.v.length * normal * BOUNCE_FACTOR - self.v.dot(-normal) / (normal.length) * (-normal).normalized()
+                self.v += (self.v.length * normal * BOUNCE_FACTOR) - (self.v.dot(-normal) / (normal.length) * (-normal).normalized()) - FRICTION * (self.v - self.v.dot(-normal) / (normal.length) * (-normal).normalized() )
 
         self.obj.location += disp
         for particle in self.particles:

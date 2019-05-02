@@ -34,7 +34,7 @@ cube_faces = [
     (1, 5, 6, 2),
     (2, 6, 7, 3),
     (4, 0, 3, 7)]
-
+cube_vertices = [vertex+mathutils.Vector((-5,-5,0)) for vertex in cube_vertices]
 cube_mesh_data = bpy.data.meshes.new("cube_mesh_data")
 cube_mesh_data.from_pydata(cube_vertices, [], cube_faces)
 cube_mesh_data.update()
@@ -75,6 +75,7 @@ lattice.SCENE_OBJECTS.append(plane)
 
 #v = mathutils.Vector((0,0,0))
 #a = mathutils.Vector((0,0,-9.8))
+cube.v += mathutils.Vector((5, 5, 0))
 for f in range(0,250):
     cube.move()
     cube.obj.keyframe_insert(data_path="location", frame=f)
