@@ -25,7 +25,7 @@ def is_inside(p, obj):
     return not(v < 0.0)
 
 class CubeParticle:
-    
+
     def __init__(self, parent, location):
         self.parent = parent
         self.center = location
@@ -37,7 +37,7 @@ class CubeParticle:
         for neighbor in neighbors:
             self.connections[neighbor] = BOND_STRENGTH
 
-        
+
 class SceneObject:
 
     #Collection of Particles
@@ -70,6 +70,7 @@ class SceneObject:
         self.height = 0
         self.depth = 0
 
+    #for now we assume that the cube is perfectly xyz-axis-aligned
     def generate_mesh(self, width, length, height, x, y, z, res):
         # width = x-axis, length = y-axis, height = z-axis
         particles = [[[CubeParticle(self, mathutils.Vector((x + i*res, y + j*res, z + k*res))) for k in range(0, math.ceil(height / res))] for j in range(0, math.ceil(length / res))] for i in range(0, math.ceil(width / res))]
@@ -135,10 +136,10 @@ class SceneObject:
         self.obj.location += disp
         for particle in self.particles:
             particle.center += disp
-    
+
     #Input: List of adjacent particles to split from this scene object
     #Modifies self to account for splitting objects
-    #Output: Reference to splitted object 
+    #Output: Reference to splitted object
     def split(self, particles):
         return
 
@@ -148,44 +149,4 @@ class SceneObject:
         for vertex in self.vertices:
             if is_inside(vertex, other_obj.obj):
                 return True
-        return None
-
-    '''def compute_collision(self, contact_point, contact_normal, contact_force):
-        #1. compute closest particle, p0, to contact_point
-        p0 = min(self.particles, particle : abs(particle.center - contact_point))
-
-        #2. apply force to p0 and propogate out force by traversing neighbors. keep track of how many particles deep we are to simulate dampening. 
-        pqueue = []
-        visited = set(p0)
-        pqueue.append((p0, 0))
-
-        while pqueue:
-            pcur, depth = pqueue.pop()
-            for pneighber, connection in pcur.connections:
-                connection -= max(0.0, contact_force * (1.0 - depth / DAMPENING_FACTOR))
-
-                #TODO: maybe record where all the breaks are 
-
-
-                if pneighbor not in visited and connection > 0: #not sure if the force continues after the particles break off??
-                    pqueue.append((pneighbor, depth + 1))
-                    visited.add(pneighbor)
-
-
-        #3. If anything breaks, find largest continuous piece to break off and apply force to it
-        #4. apply contact/collision forces to originally contacted object as well '''
-
-    # decrease the connection strength between particles p0 and p1 by contact_force
-    def change_connection_strengths(self, p0, p1, contact_force):
-        change = ALPHA * contact_force
-        latticeNode = random.choice([p0, p1])
-        neighbors = [key for key, value in latticeNode.connections.items()]
-        selNeighborNode = random.choice([key for key, value in latticeNode.connections.items()])
-        latticeNode.connections[selNeighborNode] -= change
-        selNeighborNode.connections[latticeNode] -= change
-        if latticeNode.connections[selNeighborNode] <= BREAKING_THRESHOLD:
-            del latticeNode.connections[selNeighborNode]
-            del selNeighborNode.connections[latticeNode]
-        for neighbor in neighbors:
-            if neighbor != selNeighborNode and change >= TAU:
-                self.change_connection_strengths(latticeNode, neighbor, change)
+        return False
