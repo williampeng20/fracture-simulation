@@ -42,7 +42,7 @@ class SceneObject:
 
     #Collection of Particles
 
-    def __init__(self, resolution, vertices, render_object):
+    def __init__(self, resolution, vertices, render_object, fracturable):
         self.v = mathutils.Vector((0,0,0))
         self.rv = mathutils.Vector((0,0,0))
         self.a = mathutils.Vector((0,0,-9.8))
@@ -69,6 +69,7 @@ class SceneObject:
         self.width = 0
         self.height = 0
         self.depth = 0
+        self.fracturable = fracturable
 
     #for now we assume that the cube is perfectly xyz-axis-aligned
     def generate_mesh(self, width, length, height, x, y, z, res):
@@ -103,6 +104,11 @@ class SceneObject:
             vertex += disp
         # Check for collision
         for obj in SCENE_OBJECTS:
+            '''if obj.__class__.__name__ == 'glassPane':
+                print("glass")
+                if True:
+                    print("collision")
+                    obj.generate_fractures(mathutils.Vector((0,0,0.5)), 5)'''
             if obj is not self and self.detect_collision(obj):
                 correction = 0.0
                 normal = mathutils.Vector((0,0,0))
@@ -130,18 +136,20 @@ class SceneObject:
                 for vertex in self.vertices:
                     vertex -= correction*disp
                 disp *= 1 - correction
-                #self.v = mathutils.Vector((0,0,0))
                 self.v += (self.v.length * normal * BOUNCE_FACTOR) - (self.v.dot(-normal) / (normal.length) * (-normal).normalized()) - FRICTION * (self.v - self.v.dot(-normal) / (normal.length) * (-normal).normalized() )
 
         self.obj.location += disp
         for particle in self.particles:
             particle.center += disp
 
+    def cell_fracture(self, impact_points):
+        return False
+
     #Input: List of adjacent particles to split from this scene object
     #Modifies self to account for splitting objects
     #Output: Reference to splitted object
     def split(self, particles):
-        return
+        return False
 
     # Input: SceneObject to detect collision with self
     # Output: True if collision, False if no collision
@@ -150,3 +158,102 @@ class SceneObject:
             if is_inside(vertex, other_obj.obj):
                 return True
         return False
+
+class glassPane: 
+
+    #coordinates in object space
+    def __init__(self, bot_left, top_right, obj):
+        self.left = bot_left.x
+        self.right = top_right.x
+        self.top = top_right.y
+        self.bot = bot_left.y
+
+        self.obj = obj
+
+    def sample_particle(self, p):
+
+        while True:
+            nx = random.uniform(-1, 1)
+            ny = random.uniform(-1, 1)
+            
+            nx_bias = pow(nx, 3)
+            ny_bias = pow(ny, 3)
+
+            sx = p.x + nx_bias
+            sy = p.y + ny_bias
+
+            if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bot:
+                return mathutils.Vector((sx, sy, p.z))
+
+
+    #p := impact point
+    #k := total number of fracture reference particles
+    def generate_fractures(self, p, k):
+        pts = []
+        for _ in range(k):
+            s = self.sample_particle(p)
+            pts += [s]
+        hull = self.convex_hull(pts)
+
+        
+
+        outside_vertices = [
+            mathutils.Vector((self.right, self.bottom, 0.0)),
+            mathutils.Vector((self.right, -1.0, 0)),
+            mathutils.Vector((-1.0, -1.0, -1.0)),
+            mathutils.Vector((-1.0, 1.0, -1.0)),
+            mathutils.Vector((1.0, 1.0, 1.0)),
+            mathutils.Vector((1.0, -1.0, 1.0)),
+            mathutils.Vector((-1.0, -1.0, 1.0)),
+            mathutils.Vector((-1.0, 1.0, 1.0))]
+        outside_face = []
+
+        cube_mesh_data = bpy.data.meshes.new("cube_mesh_data")
+        cube_mesh_data.from_pydata(cube_vertices, [], cube_faces)
+        cube_mesh_data.update()
+        cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
+        cube_obj.location += mathutils.Vector((0,0,10))
+        scene.objects.link(cube_obj)
+
+
+    #input: points = set of points
+    #output: hull points
+    def convex_hull(self, points):
+        # find the leftmost point
+        a =  min(points, key = lambda point: point.x)
+        index = points.index(a)
+        
+        # selection sort
+        l = index
+        result = []
+        result.append(a)
+        while (True):
+            q = (l + 1) % len(points)
+            for i in range(len(points)):
+                if i == l:
+                    continue
+                # find the greatest left turn
+                # in case of collinearity, consider the farthest point
+                d = self.direction(points[l], points[i], points[q])
+                if d > 0:
+                    q = i
+            l = q
+            if l == index:
+                break
+            result.append(points[q])
+
+        return result
+
+    # calculates the cross product of vector p1 and p2
+    # if p1 is clockwise from p2 wrt origin then it returns +ve value
+    # if p2 is anti-clockwise from p2 wrt origin then it returns -ve value
+    # if p1 p2 and origin are collinear then it returs 0
+    def cross_product(self, p1, p2):
+        return p1.x * p2.y - p2.x * p1.y
+
+    # returns the cross product of vector p1p3 and p1p2
+    # if p1p3 is clockwise from p1p2 it returns +ve value
+    # if p1p3 is anti-clockwise from p1p2 it returns -ve value
+    # if p1 p2 and p3 are collinear it returns 0
+    def direction(self, p1, p2, p3):
+        return self.cross_product(p3 - p1, p2 -p1)

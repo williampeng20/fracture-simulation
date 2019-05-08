@@ -17,9 +17,9 @@ clear_scene()
 
 scene = bpy.context.scene
 
-bpy.ops.mesh.primitive_uv_sphere_add(location=(-18,-18,10))
+bpy.ops.mesh.primitive_uv_sphere_add(location=(-15,-15,10))
 sphere_obj = bpy.data.objects['Sphere']
-sphere_vertices = [vertex.co+mathutils.Vector((-18,-18,10)) for vertex in sphere_obj.data.vertices]
+sphere_vertices = [vertex.co+mathutils.Vector((-15,-15,10)) for vertex in sphere_obj.data.vertices]
 
 sphere = lattice.SceneObject(0.5, sphere_vertices, sphere_obj)
 lattice.SCENE_OBJECTS.append(sphere)
