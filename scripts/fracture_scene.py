@@ -92,6 +92,20 @@ lattice.SCENE_OBJECTS.append(glass)
 
 glass.generate_fractures(mathutils.Vector((0,0,0.5)), 5)
 
+fragment_verts = [
+    mathutils.Vector((1.0, 0.0, 0.0)),
+    mathutils.Vector((0.0, 1.0, 0.0)),
+    mathutils.Vector((-1.0, 0.0, 0.0)),
+    mathutils.Vector((-0.5, -1.0, 0.0)),
+    mathutils.Vector((0.5, -1.0, 0.0)),
+]
+frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
+frag_mesh_data.from_pydata(fragment_verts, [], [(0,1,2,3,4)])
+frag_mesh_data.update()
+frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
+frag_obj.location += mathutils.Vector((0,0,4))
+scene.objects.link(frag_obj)
+
 #for f in range(0,250):
     #cube.move()
     #cube.obj.keyframe_insert(data_path="location", frame=f)
