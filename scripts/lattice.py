@@ -169,6 +169,12 @@ class glassPane:
         self.top = top_right.y
         self.bottom = bot_left.y
 
+        self.edges = [
+            (mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.left, self.top, 0.0))),
+            (mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.right, self.bot, 0.0))),
+            (mathutils.Vector((self.left, self.top, 0.0)), mathutils.Vector((self.right, self.top, 0.0))),
+            (mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bot, 0.0)))]
+
         self.obj = obj
 
     def sample_particle(self, p):
@@ -180,8 +186,8 @@ class glassPane:
             nx_bias = pow(nx, 3)
             ny_bias = pow(ny, 3)
 
-            sx = p.x + nx_bias
-            sy = p.y + ny_bias
+            sx = p.x + nx_bias * abs(self.right - self.left)
+            sy = p.y + ny_bias * abs(self.top - self.bot)
 
             if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bottom:
                 return mathutils.Vector((sx, sy, p.z))
@@ -255,24 +261,57 @@ class glassPane:
             ordered.append(next_closest)
             vertices.remove(next_closest)
         return ordered
-        # outside_vertices = [
-        #     mathutils.Vector((self.right, self.bottom, 0.0)),
-        #     mathutils.Vector((self.right, -1.0, 0)),
-        #     mathutils.Vector((-1.0, -1.0, -1.0)),
-        #     mathutils.Vector((-1.0, 1.0, -1.0)),
-        #     mathutils.Vector((1.0, 1.0, 1.0)),
-        #     mathutils.Vector((1.0, -1.0, 1.0)),
-        #     mathutils.Vector((-1.0, -1.0, 1.0)),
-        #     mathutils.Vector((-1.0, 1.0, 1.0))]
-        # outside_face = []
 
-        # cube_mesh_data = bpy.data.meshes.new("cube_mesh_data")
-        # cube_mesh_data.from_pydata(cube_vertices, [], cube_faces)
-        # cube_mesh_data.update()
-        # cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
-        # cube_obj.location += mathutils.Vector((0,0,10))
-        # scene.objects.link(cube_obj)
+        cvh = self.convex_hull(pts)
+        outer = self.outer_points(self.edges, math.ceil(len(cvh) / len(self.edges)))
+        while len(cvh) > 2:
+            for j in range(len(cvh)):
+                cur_frag = []
+                cur_frag.append(cvh[j])
+                crease, start = self.closest_point(cvh[j], outer)
+                cur_frag.append(crease)
+                x = j+1 if j+1 < len(cvh) else 0
+                cur_frag.append(cvh[x])
+                ptsd, end = self.closest_point(cvh[x], outer)
+                if start != end:
+                    cur_frag.append(ptsd)
+                    cur_frag += outer[min(start, end)+1:max(start,end)]
+                self.generate_frag(cur_frag)
+            outer = cvh
+            samples = [sample for sample in pts if sample not in cvh]
+            cvh = self.convex_hull(samples)
 
+    def generate_frag(self, points):
+        #points = self.make_ccw(points)
+        frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
+        frag_mesh_data.from_pydata(points, [], [tuple(range(len(points)))])
+        frag_mesh_data.update()
+        frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
+        frag_obj.location = self.obj.location
+        bpy.context.scene.objects.link(frag_obj)
+
+
+    # k := number of random outer-edge points
+    # edges := list of edges to use
+    def outer_points(self, edges, k):
+        #for _ in range(k):
+        return [mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.left, self.top, 0.0)),
+            mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bot, 0.0))]
+
+    # p := point of reference
+    # points := list of points to find closest to p
+    def closest_point(self, p, points):
+        closest = None
+        dist = 999999
+        index = -1
+        for i in range(len(points)):
+            point = points[i]
+            length = (p - point).length
+            if length < dist:
+                dist = length
+                closest = point
+                index = i
+        return closest, index
 
     #input: points = set of points
     #output: hull points
