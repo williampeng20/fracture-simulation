@@ -88,12 +88,14 @@ for i in range(0, 4):
     glass_obj.data.vertices[i].co.y *= 4
     #glass_obj.data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 4 + 0.25
 glass_obj.location += mathutils.Vector((0,0,3))
-glass = lattice.glassPane(mathutils.Vector((-4.0, -4.0, 0.0)), mathutils.Vector((4.0, 4.0, 0.5)), glass_obj)
+glass = lattice.glassPane(mathutils.Vector((-4.0, -4.0, 0.0)), mathutils.Vector((4.0, 4.0, 0.0)), glass_obj)
 lattice.SCENE_OBJECTS.append(glass)
 
-glass.generate_fractures(mathutils.Vector((0,0,0.5)), 5)
+#glass.generate_fractures(mathutils.Vector((0,0,0)), 5)
+test_pts = [mathutils.Vector((0.0, 0.0, 0.0)), mathutils.Vector((0.30522313714027405, 0.7625949382781982, 0.0)), mathutils.Vector((0.28216731548309326, -0.2529039978981018, 0.0)), mathutils.Vector((-0.0072681717574596405, -3.709054946899414, 0.0)), mathutils.Vector((-1.6303175687789917, -0.002151413122192025, 0.0)), mathutils.Vector((0.4423271715641022, 1.6230614185333252, 0.0))]
+glass.generate_fractures(mathutils.Vector((0,0,0)), 5, test_pts)
 
-fragment_verts = [
+'''fragment_verts = [
     mathutils.Vector((1.0, 0.0, 0.0)),
     mathutils.Vector((0.0, 1.0, 0.0)),
     mathutils.Vector((-1.0, 0.0, 0.0)),
@@ -105,7 +107,7 @@ frag_mesh_data.from_pydata(fragment_verts, [], [(0,1,2,3,4)])
 frag_mesh_data.update()
 frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
 frag_obj.location += mathutils.Vector((0,0,4))
-scene.objects.link(frag_obj)
+scene.objects.link(frag_obj)'''
 
 #for f in range(0,250):
     #cube.move()

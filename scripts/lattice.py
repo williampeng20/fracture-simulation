@@ -170,12 +170,13 @@ class glassPane:
         self.bottom = bot_left.y
 
         self.edges = [
-            (mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.left, self.top, 0.0))),
-            (mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.right, self.bot, 0.0))),
+            (mathutils.Vector((self.left, self.bottom, 0.0)), mathutils.Vector((self.left, self.top, 0.0))),
+            (mathutils.Vector((self.left, self.bottom, 0.0)), mathutils.Vector((self.right, self.bottom, 0.0))),
             (mathutils.Vector((self.left, self.top, 0.0)), mathutils.Vector((self.right, self.top, 0.0))),
-            (mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bot, 0.0)))]
+            (mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bottom, 0.0)))]
 
         self.obj = obj
+        self.num_frags = 0
 
     def sample_particle(self, p):
 
@@ -186,8 +187,8 @@ class glassPane:
             nx_bias = pow(nx, 3)
             ny_bias = pow(ny, 3)
 
-            sx = p.x + nx_bias * abs(self.right - self.left)
-            sy = p.y + ny_bias * abs(self.top - self.bot)
+            sx = p.x + nx_bias * abs(self.right - self.left) 
+            sy = p.y + ny_bias * abs(self.top - self.bottom)
 
             if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bottom:
                 return mathutils.Vector((sx, sy, p.z))
@@ -195,12 +196,69 @@ class glassPane:
 
     #p := impact point
     #k := total number of fracture reference particles
-    def generate_fractures(self, p, k):
-        pts = []
-        for _ in range(k):
-            s = self.sample_particle(p)
-            pts += [s]
-        hull = self.convex_hull(pts)
+    def generate_fractures(self, p, k, pts=[]):
+        # test pointing
+        if not pts:
+            pts = [p]
+            for _ in range(k):
+                s = self.sample_particle(p)
+                pts += [s]
+        cvh = self.convex_hull(pts)
+        outer = self.outer_points(self.edges, math.ceil(len(cvh) / len(self.edges)))
+
+        print("sample points: \n", pts)
+        while True:
+            print("new frag")
+            print("cvh \n", cvh)
+            print("outer \n", outer)
+            if len(cvh) >= len(outer):
+                primary = cvh
+                secondary = outer
+            else:
+                primary = outer
+                secondary = cvh
+                    
+            for i in range(len(primary)):
+                
+                # first point
+                cur_frag = []
+                cur_frag.append(primary[i])
+
+                # second point
+                sec1, start = self.closest_point_index(primary[i], secondary)
+                cur_frag.append(sec1)
+
+                # third point
+                i_next = i+1 if i+1 < len(primary) else 0
+                cur_frag.append(primary[i_next])
+
+                # any last points
+                sec2, end = self.closest_point_index(primary[i_next], secondary)
+                if start != end:
+                    cur_frag.append(sec2)
+                    print("start: {}, end: {}".format(start, end))
+                    # cur_frag += secondary[min(start, end)+1:max(start,end)]
+                    if start < end:
+                        cur_frag += secondary[start + 1: end]
+                    else:
+                        cur_frag += secondary[start + 1:]
+                        cur_frag += secondary[: end]
+
+
+                self.generate_frag(cur_frag)
+                print("unordered", cur_frag)
+            outer = cvh
+            pts = [sample for sample in pts if sample not in cvh]
+            if not pts:
+                if len(outer) >= 3:
+                    self.generate_frag(outer)
+                break
+            cvh = self.convex_hull(pts)
+
+        for obj in bpy.data.objects:
+            obj.select = False
+        self.obj.select = True
+        bpy.ops.object.delete()
 
     def distance(self, u, v): 
         return ((u.x - v.x) ** 2 + (u.y - v.y) ** 2) ** 0.5
@@ -214,93 +272,124 @@ class glassPane:
                     min_dist = self.distance(p, v)
                     closest_v = v
         return closest_v
-    
-    def new_shard(self, vertices): 
-        ordered_vertices = make_ccw(vertices)
-        #make new frag
-        fragment_verts = ordered_vertices
-        frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
-        frag_mesh_data.from_pydata(fragment_verts, [], [(0,1,2,3,4)])
-        frag_mesh_data.update()
-        frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
-        frag_obj.location += mathutils.Vector((0,0,4))
-        scene.objects.link(frag_obj)
         
     def make_ccw(self, points):
+        print("ccw # pts:", len(points))
         vertices = copy.deepcopy(points)
-        start = vertices[0]
+        # Michelle's Method
+        '''#start = vertices[0]
+        start = min(vertices, key = lambda point: point.x)
         vertices.remove(start)
         next_0 = self.closest_point(start, vertices)
         vertices.remove(next_0)
         next_1 = self.closest_point(start, vertices)
         vertices.remove(next_1)
+
+        print("ccw... start: {}, next_0: {}, next_1: {}".format(start, next_0, next_1))
         ordered = []
         if self.direction(start, next_0, next_1) < 0:
             # ordering is ccw
             ordered = [start, next_0, next_1]
-        if self.direction(start, next_1, next_0) < 0:
+        elif self.direction(start, next_1, next_0) < 0:
             # ordering is ccw
             ordered = [start, next_1, next_0]
 
-        if self.direction(next_0, start, next_1) < 0:
+        elif self.direction(next_0, start, next_1) < 0:
             # ordering is ccw
             ordered = [next_0, start, next_1]
-        if self.direction(next_0, next_1, start) < 0:
+        elif self.direction(next_0, next_1, start) < 0:
             # ordering is ccw
             ordered = [next_0, next_1, start]
 
-        if self.direction(next_1, start, next_0) < 0:
+        elif self.direction(next_1, start, next_0) < 0:
             # ordering is ccw
             ordered = [next_1, start, next_0]
-        if self.direction(next_1, next_0, start) < 0:
+        elif self.direction(next_1, next_0, start) < 0:
             # ordering is ccw
             ordered = [next_1, next_0, start]
 
+        print("ccw.. ordered: {}".format(ordered))
         while vertices:
             next_closest = self.closest_point(ordered[-1], vertices)
             ordered.append(next_closest)
             vertices.remove(next_closest)
-        return ordered
+        for vertex in vertices:
+            len_before_insert = len(ordered)
+            for i in range(len(ordered)-1):
+                if self.direction(ordered[i], vertex, ordered[i+1]) < 0:
+                    ordered.insert(i+1, vertex)
+            if len_before_insert == len(ordered):
+                ordered.insert(len_before_insert, vertex)
+        print("ordered", ordered)
+        return ordered'''
+        # Will's Convex Hull Method
+        '''ordered = self.convex_hull(vertices)[::-1]
+        for pt in ordered:
+            vertices.remove(pt)
+        for vertex in vertices:
+            len_before_insert = len(ordered)
+            for i in range(len(ordered)-1):
+                if self.direction(ordered[i], vertex, ordered[i+1]) < 0:
+                    ordered.insert(i+1, vertex)
+            if len_before_insert == len(ordered):
+                ordered.insert(len_before_insert, vertex)
+        print("ordered", ordered)  
+        return ordered'''
+        # Chris's Method
+        vertices.sort(key = lambda p : p.y)
+        vertices.sort(key = lambda p : p.x)
+        lm = vertices[0]
+        rm = vertices[-1]
 
-        cvh = self.convex_hull(pts)
-        outer = self.outer_points(self.edges, math.ceil(len(cvh) / len(self.edges)))
-        while len(cvh) > 2:
-            for j in range(len(cvh)):
-                cur_frag = []
-                cur_frag.append(cvh[j])
-                crease, start = self.closest_point(cvh[j], outer)
-                cur_frag.append(crease)
-                x = j+1 if j+1 < len(cvh) else 0
-                cur_frag.append(cvh[x])
-                ptsd, end = self.closest_point(cvh[x], outer)
-                if start != end:
-                    cur_frag.append(ptsd)
-                    cur_frag += outer[min(start, end)+1:max(start,end)]
-                self.generate_frag(cur_frag)
-            outer = cvh
-            samples = [sample for sample in pts if sample not in cvh]
-            cvh = self.convex_hull(samples)
+        cutoff_slope = (rm.y - lm.y) / (rm.x - lm.x)
+        '''mean_y = 0
+        for v in vertices:
+            mean_y += v.y
+        mean_y /= len(vertices)'''
+
+        ordered = [lm]
+
+        vertices.remove(lm)
+
+        for i, p in enumerate(vertices[:-1]):
+            if p.y <= cutoff_slope * (p.x - lm.x) + lm.y:
+            # if p.y <= mean_y:
+                ordered.append(p)
+                vertices.remove(p)
+
+        vertices.reverse()
+        ordered.extend(vertices)
+        print("ordered", ordered) 
+        return ordered
+        
 
     def generate_frag(self, points):
-        #points = self.make_ccw(points)
+        points = self.make_ccw(points)
         frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
         frag_mesh_data.from_pydata(points, [], [tuple(range(len(points)))])
         frag_mesh_data.update()
         frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
         frag_obj.location = self.obj.location
         bpy.context.scene.objects.link(frag_obj)
+        self.num_frags += 1
+        print(self.num_frags)
 
 
     # k := number of random outer-edge points
     # edges := list of edges to use
     def outer_points(self, edges, k):
         #for _ in range(k):
-        return [mathutils.Vector((self.left, self.bot, 0.0)), mathutils.Vector((self.left, self.top, 0.0)),
-            mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bot, 0.0))]
+        rtn = [mathutils.Vector((self.left, self.bottom, 0.0)), mathutils.Vector((self.left, self.top, 0.0)),
+            mathutils.Vector((self.right, self.top, 0.0)), mathutils.Vector((self.right, self.bottom, 0.0))]
+        for edge in self.edges:
+            for _ in range(k):
+                num = random.random()
+                rtn.append(edge[0]*num + edge[1]*(1-num))
+        return self.make_ccw(rtn)[::-1]
 
     # p := point of reference
     # points := list of points to find closest to p
-    def closest_point(self, p, points):
+    def closest_point_index(self, p, points):
         closest = None
         dist = 999999
         index = -1
