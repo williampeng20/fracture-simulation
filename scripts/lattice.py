@@ -211,13 +211,15 @@ class glassPane:
             print("new frag")
             print("cvh \n", cvh)
             print("outer \n", outer)
+            inner_primary = True
             if len(cvh) >= len(outer):
                 primary = cvh
                 secondary = outer
             else:
+                inner_primary = False
                 primary = outer
                 secondary = cvh
-                    
+            print(inner_primary)
             for i in range(len(primary)):
                 
                 # first point
@@ -230,27 +232,35 @@ class glassPane:
 
                 # third point
                 i_next = i+1 if i+1 < len(primary) else 0
-                cur_frag.append(primary[i_next])
+                cur_frag.insert(0, primary[i_next])
 
                 # any last points
                 sec2, end = self.closest_point_index(primary[i_next], secondary)
                 if start != end:
-                    cur_frag.append(sec2)
-                    print("start: {}, end: {}".format(start, end))
+                    cur_frag.insert(0, sec2)
+                    if not inner_primary:
+                        cur_frag.reverse()
                     # cur_frag += secondary[min(start, end)+1:max(start,end)]
+                    intermediates = []
                     if start < end:
-                        cur_frag += secondary[start + 1: end]
+                        
+                        intermediates += secondary[start + 1: end]
                     else:
-                        cur_frag += secondary[start + 1:]
-                        cur_frag += secondary[: end]
-
-
+                        intermediates += secondary[start + 1:]
+                        intermediates += secondary[: end]
+                    if not inner_primary:
+                        intermediates.reverse()
+                    cur_frag += intermediates
+                elif not inner_primary:
+                    cur_frag.reverse()
+                cur_frag.reverse()
                 self.generate_frag(cur_frag)
-                print("unordered", cur_frag)
+                print("ordering", cur_frag)
             outer = cvh
             pts = [sample for sample in pts if sample not in cvh]
             if not pts:
                 if len(outer) >= 3:
+                    outer.reverse()
                     self.generate_frag(outer)
                 break
             cvh = self.convex_hull(pts)
@@ -259,6 +269,7 @@ class glassPane:
             obj.select = False
         self.obj.select = True
         bpy.ops.object.delete()
+
 
     def distance(self, u, v): 
         return ((u.x - v.x) ** 2 + (u.y - v.y) ** 2) ** 0.5
@@ -364,7 +375,7 @@ class glassPane:
         
 
     def generate_frag(self, points):
-        points = self.make_ccw(points)
+        #points = self.make_ccw(points)
         frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
         frag_mesh_data.from_pydata(points, [], [tuple(range(len(points)))])
         frag_mesh_data.update()

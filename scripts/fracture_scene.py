@@ -93,7 +93,7 @@ lattice.SCENE_OBJECTS.append(glass)
 
 #glass.generate_fractures(mathutils.Vector((0,0,0)), 5)
 test_pts = [mathutils.Vector((0.0, 0.0, 0.0)), mathutils.Vector((0.30522313714027405, 0.7625949382781982, 0.0)), mathutils.Vector((0.28216731548309326, -0.2529039978981018, 0.0)), mathutils.Vector((-0.0072681717574596405, -3.709054946899414, 0.0)), mathutils.Vector((-1.6303175687789917, -0.002151413122192025, 0.0)), mathutils.Vector((0.4423271715641022, 1.6230614185333252, 0.0))]
-glass.generate_fractures(mathutils.Vector((0,0,0)), 5, test_pts)
+glass.generate_fractures(mathutils.Vector((0,0,0)), 500)
 
 '''fragment_verts = [
     mathutils.Vector((1.0, 0.0, 0.0)),
