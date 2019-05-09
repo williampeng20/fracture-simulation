@@ -168,6 +168,10 @@ class glassPane:
         self.right = top_right.x
         self.top = top_right.y
         self.bottom = bot_left.y
+        self.top_z = top_right.z
+        self.bot_z = bot_left.z
+
+        self.thickness = abs(self.top_z - self.bot_z)
 
         self.edges = [
             (mathutils.Vector((self.left, self.bottom, 0.0)), mathutils.Vector((self.left, self.top, 0.0))),
@@ -178,30 +182,36 @@ class glassPane:
         self.obj = obj
         self.num_frags = 0
 
-    def sample_particle(self, p):
+    def sample_particle(self, p, impact_force):
 
         while True:
-            nx = random.uniform(-1, 1)
-            ny = random.uniform(-1, 1)
+            theta = random.uniform(0, 2 * math.pi)
+            r = random.uniform(0, 1)
             
-            nx_bias = pow(nx, 3)
-            ny_bias = pow(ny, 3)
+            # nx_bias = pow(nx, 5)
+            # ny_bias = pow(ny, 5)
+            r_bias = pow(r, 9)
+            sr = r_bias * max(abs(self.right - self.left), abs(self.top - self.bottom)) * impact_force
+            x_coord = p.x + math.cos(theta) * sr
+            y_coord = p.y + math.sin(theta) * sr
 
-            sx = p.x + nx_bias * abs(self.right - self.left) 
-            sy = p.y + ny_bias * abs(self.top - self.bottom)
+            # sx = p.x + nx_bias * abs(self.right - self.left) 
+            # sy = p.y + ny_bias * abs(self.top - self.bottom)
 
-            if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bottom:
-                return mathutils.Vector((sx, sy, p.z))
+            if x_coord >= self.left and x_coord <= self.right and y_coord <= self.top and y_coord >= self.bottom:
+                return mathutils.Vector((x_coord, y_coord, p.z))
+
+    # def force_radius(self, impact_force):
 
 
     #p := impact point
     #k := total number of fracture reference particles
-    def generate_fractures(self, p, k, pts=[]):
+    def generate_fractures(self, p, k, pts=[], impact_force=1.0):
         # test pointing
         if not pts:
             pts = [p]
             for _ in range(k):
-                s = self.sample_particle(p)
+                s = self.sample_particle(p, impact_force)
                 pts += [s]
         cvh = self.convex_hull(pts)
         outer = self.outer_points(self.edges, math.ceil(len(cvh) / len(self.edges)))
@@ -267,6 +277,12 @@ class glassPane:
 
         for obj in bpy.data.objects:
             obj.select = False
+        for obj in bpy.data.objects:
+            if 'frag' in obj.name:
+                obj.select = True
+                bpy.ops.object.origin_set(type='ORIGIN_CENTER_OF_VOLUME', center='BOUNDS')
+                bpy.ops.rigidbody.objects_add(type='ACTIVE')
+                obj.select = False
         self.obj.select = True
         bpy.ops.object.delete()
 
@@ -377,7 +393,17 @@ class glassPane:
     def generate_frag(self, points):
         #points = self.make_ccw(points)
         frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
-        frag_mesh_data.from_pydata(points, [], [tuple(range(len(points)))])
+        num_pts = len(points)
+        points += [mathutils.Vector((point.x, point.y, self.top_z)) if point.z == self.bot_z else mathutils.Vector((point.x, point.y, self.bot_z)) for point in points]
+        faces = []
+        if points[0].z == self.top_z:
+            faces = [tuple(range(num_pts)), tuple(range(2*num_pts-1, num_pts-1, -1))]
+        else:
+            faces = [tuple(range(num_pts-1, -1, -1)), tuple(range(num_pts, 2*num_pts))]
+        for i in range(num_pts):
+            j = i+1 if i+1 < num_pts else 0
+            faces.append((i, j, j+num_pts, i+num_pts))
+        frag_mesh_data.from_pydata(points, [], faces)
         frag_mesh_data.update()
         frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
         frag_obj.location = self.obj.location

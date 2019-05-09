@@ -41,6 +41,7 @@ cube_mesh_data.update()
 cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
 cube_obj.location += mathutils.Vector((0,0,10))
 scene.objects.link(cube_obj)
+#bpy.ops.rigidbody.objects_add(type='ACTIVE')
 
 cube = lattice.SceneObject(0.5, [vertex+mathutils.Vector((0,0,10)) for vertex in cube_vertices], cube_obj, False)
 lattice.SCENE_OBJECTS.append(cube)
@@ -51,6 +52,7 @@ freedom7_obj = bpy.ops.import_scene.obj(filepath=obj_path)'''
 bpy.ops.mesh.primitive_cube_add()
 for obj in bpy.context.selected_objects:
     obj.name = "Plane"
+    bpy.ops.rigidbody.objects_add(type='PASSIVE')
 plane_vertices = [
     mathutils.Vector((8.0, 8.0, 0.0)),
     mathutils.Vector((8.0, -8.0, 0.0)),
@@ -69,7 +71,7 @@ plane = lattice.SceneObject(0.5, plane_vertices, bpy.data.objects['Plane'], Fals
 lattice.SCENE_OBJECTS.append(plane)
 
 #this is the plane
-bpy.ops.mesh.primitive_plane_add()
+bpy.ops.mesh.primitive_cube_add()
 for obj in bpy.context.selected_objects:
     obj.name = "Glass"
 glass_obj = bpy.data.objects['Glass']
@@ -86,14 +88,14 @@ glass_obj = bpy.data.objects['Glass']
 for i in range(0, 4):
     glass_obj.data.vertices[i].co.x *= 4
     glass_obj.data.vertices[i].co.y *= 4
-    #glass_obj.data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 4 + 0.25
+    glass_obj.data.vertices[i].co.z = bpy.data.objects['Plane'].data.vertices[i].co.z / 8 + 0.125
 glass_obj.location += mathutils.Vector((0,0,3))
-glass = lattice.glassPane(mathutils.Vector((-4.0, -4.0, 0.0)), mathutils.Vector((4.0, 4.0, 0.0)), glass_obj)
+glass = lattice.glassPane(mathutils.Vector((-4.0, -4.0, 0.0)), mathutils.Vector((4.0, 4.0, 0.25)), glass_obj)
 lattice.SCENE_OBJECTS.append(glass)
 
 #glass.generate_fractures(mathutils.Vector((0,0,0)), 5)
 test_pts = [mathutils.Vector((0.0, 0.0, 0.0)), mathutils.Vector((0.30522313714027405, 0.7625949382781982, 0.0)), mathutils.Vector((0.28216731548309326, -0.2529039978981018, 0.0)), mathutils.Vector((-0.0072681717574596405, -3.709054946899414, 0.0)), mathutils.Vector((-1.6303175687789917, -0.002151413122192025, 0.0)), mathutils.Vector((0.4423271715641022, 1.6230614185333252, 0.0))]
-glass.generate_fractures(mathutils.Vector((0,0,0)), 500)
+glass.generate_fractures(mathutils.Vector((0,0,0)), 50)
 
 '''fragment_verts = [
     mathutils.Vector((1.0, 0.0, 0.0)),
