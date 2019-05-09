@@ -68,6 +68,7 @@ for i in range(0, len(plane_vertices)):
 plane = lattice.SceneObject(0.5, plane_vertices, bpy.data.objects['Plane'], False)
 lattice.SCENE_OBJECTS.append(plane)
 
+#this is the plane
 bpy.ops.mesh.primitive_plane_add()
 for obj in bpy.context.selected_objects:
     obj.name = "Glass"

@@ -2,6 +2,7 @@ import bpy
 import mathutils
 import math
 import random
+import copy
 
 PARTICLE_MASS = 0
 BREAKING_THRESHOLD = 0.2
@@ -166,7 +167,7 @@ class glassPane:
         self.left = bot_left.x
         self.right = top_right.x
         self.top = top_right.y
-        self.bot = bot_left.y
+        self.bottom = bot_left.y
 
         self.obj = obj
 
@@ -182,7 +183,7 @@ class glassPane:
             sx = p.x + nx_bias
             sy = p.y + ny_bias
 
-            if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bot:
+            if sx >= self.left and sx <= self.right and sy <= self.top and sy >= self.bottom:
                 return mathutils.Vector((sx, sy, p.z))
 
 
@@ -195,25 +196,82 @@ class glassPane:
             pts += [s]
         hull = self.convex_hull(pts)
 
+    def distance(self, u, v): 
+        return ((u.x - v.x) ** 2 + (u.y - v.y) ** 2) ** 0.5
+    
+    def closest_point(self, p, points):
+        min_dist = 100
+        closest_v = None
+        for v in points:
+            if p != v:
+                if self.distance(p, v) < min_dist:
+                    min_dist = self.distance(p, v)
+                    closest_v = v
+        return closest_v
+    
+    def new_shard(self, vertices): 
+        ordered_vertices = make_ccw(vertices)
+        #make new frag
+        fragment_verts = ordered_vertices
+        frag_mesh_data = bpy.data.meshes.new("frag_mesh_data")
+        frag_mesh_data.from_pydata(fragment_verts, [], [(0,1,2,3,4)])
+        frag_mesh_data.update()
+        frag_obj = bpy.data.objects.new("frag", frag_mesh_data)
+        frag_obj.location += mathutils.Vector((0,0,4))
+        scene.objects.link(frag_obj)
         
+    def make_ccw(self, points):
+        vertices = copy.deepcopy(points)
+        start = vertices[0]
+        vertices.remove(start)
+        next_0 = self.closest_point(start, vertices)
+        vertices.remove(next_0)
+        next_1 = self.closest_point(start, vertices)
+        vertices.remove(next_1)
+        ordered = []
+        if self.direction(start, next_0, next_1) < 0:
+            # ordering is ccw
+            ordered = [start, next_0, next_1]
+        if self.direction(start, next_1, next_0) < 0:
+            # ordering is ccw
+            ordered = [start, next_1, next_0]
 
-        outside_vertices = [
-            mathutils.Vector((self.right, self.bottom, 0.0)),
-            mathutils.Vector((self.right, -1.0, 0)),
-            mathutils.Vector((-1.0, -1.0, -1.0)),
-            mathutils.Vector((-1.0, 1.0, -1.0)),
-            mathutils.Vector((1.0, 1.0, 1.0)),
-            mathutils.Vector((1.0, -1.0, 1.0)),
-            mathutils.Vector((-1.0, -1.0, 1.0)),
-            mathutils.Vector((-1.0, 1.0, 1.0))]
-        outside_face = []
+        if self.direction(next_0, start, next_1) < 0:
+            # ordering is ccw
+            ordered = [next_0, start, next_1]
+        if self.direction(next_0, next_1, start) < 0:
+            # ordering is ccw
+            ordered = [next_0, next_1, start]
 
-        cube_mesh_data = bpy.data.meshes.new("cube_mesh_data")
-        cube_mesh_data.from_pydata(cube_vertices, [], cube_faces)
-        cube_mesh_data.update()
-        cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
-        cube_obj.location += mathutils.Vector((0,0,10))
-        scene.objects.link(cube_obj)
+        if self.direction(next_1, start, next_0) < 0:
+            # ordering is ccw
+            ordered = [next_1, start, next_0]
+        if self.direction(next_1, next_0, start) < 0:
+            # ordering is ccw
+            ordered = [next_1, next_0, start]
+
+        while vertices:
+            next_closest = self.closest_point(ordered[-1], vertices)
+            ordered.append(next_closest)
+            vertices.remove(next_closest)
+        return ordered
+        # outside_vertices = [
+        #     mathutils.Vector((self.right, self.bottom, 0.0)),
+        #     mathutils.Vector((self.right, -1.0, 0)),
+        #     mathutils.Vector((-1.0, -1.0, -1.0)),
+        #     mathutils.Vector((-1.0, 1.0, -1.0)),
+        #     mathutils.Vector((1.0, 1.0, 1.0)),
+        #     mathutils.Vector((1.0, -1.0, 1.0)),
+        #     mathutils.Vector((-1.0, -1.0, 1.0)),
+        #     mathutils.Vector((-1.0, 1.0, 1.0))]
+        # outside_face = []
+
+        # cube_mesh_data = bpy.data.meshes.new("cube_mesh_data")
+        # cube_mesh_data.from_pydata(cube_vertices, [], cube_faces)
+        # cube_mesh_data.update()
+        # cube_obj = bpy.data.objects.new("Cube", cube_mesh_data)
+        # cube_obj.location += mathutils.Vector((0,0,10))
+        # scene.objects.link(cube_obj)
 
 
     #input: points = set of points
