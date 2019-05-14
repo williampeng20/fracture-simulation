@@ -1,0 +1,87 @@
+<html>
+<head>
+
+    <title>CS 184 Final Project</title>
+</head>
+
+<body>
+    <h1 style="text-align: center">Object Collision and Fracturing</h1>
+
+      <table style="text-align: center">
+          <tr>
+              <td style="width:1%">
+                  <h2>William Peng</h2>
+                  <h3>wpen@berkeley.edu</h3>
+              <td style="width:1%">
+                  <h2>Michelle Grace Wang</h2>
+                  <h3>mgwang@berkeley.edu</h3>
+              <td style="width:1%">
+                  <h2>Christopher Amezquita</h2>
+                  <h3>christohperameqzuita@berkeley.edu</h3>
+          </tr>
+      </table>
+
+
+    <br>
+    <h2 align="center">Abstract</h2>
+
+      <p>We designed and implemented a fracture simulation that models the effect of rigid body collision on glass. The goal was
+      to create a realistic model while simultaneously minimizing the required algorithmic complexity for this process. We accomplished
+      this by carefully designing our data structures and fine-tuning our heuristics to minimize approximation error. We worked
+      with Blender and its Python API to support scripting the behavior of its scene objects. We were able to put together a glass-shattering
+      simulation that can react to different forces and different initial points of impact. </p>
+
+    <br>
+
+    <h2 align="center">Technical Approach</h2>
+
+      <p>Describe blender and stuff here...</p>
+
+      <p>Our approach at a high level can be broken down into a few key steps. Given two Blender objects, one representing our glass pane
+      and representing our stressor, we first need to determine the force of this impact and the impact location. Next, we precompute
+      how the glass pane will fracture as a result. This should involve generating new Blender objects representing each glass shard and
+      and removing the original glass pane object. Lastly, we want to appropriately apply physics to each shard object separately at the
+      right time.</p>
+
+      <p>The first step is simple as we only need to compute our impact location and contact force exerted onto the glass plane. Our impact
+        location, vec_p, can be computed using linear algebra in 3-dimensional space. If we let vec_o be the origin of our stressor and vec_d
+        be the the direction of its travel. We know that, for some vec_p_prime being any point on the plane and vec_n being the normal to our
+        glass plane, then (vec_p - vec_p_prime) dot vec_n = 0 by the definition of a plane. We know that as long as the stressor is moving in
+        the direction of our plane, then vec_o + t * vec_d must be equal to vec_p for some real and non-negative value t. Therefore, letting
+        vec_o + t * vec_d = vec_p, substituting into our plane equation and solving for t and then kms ... we find vec_p <br>
+
+        NOTE: LETS CLEAN THIS UP with mathML or some shit like that<br>
+        Next, we comput the force as f = ma. We are now ready to pass contact force and contact point as parameters to our fracture
+        generation function. </p>
+      <p>
+
+      <p>We wanted to implement a fracturing algorithm that yielded realistic results so we read several research papers describing mostly high-level
+        ideas on how this could be implemented. The paper that had the most influence on our initial design, titled dlkafldf, aimed to reduce the typical
+        visual uniformity that results from attempts to model fracturing by introducing extra randomness in its heuristics and its underlying data structures.
+        Our team agreed that we would wish to minimize uniformity in our results since fracturing should appear as a perceivably mostly random process. The
+        paper suggested representing fracturable objects with an underlying mesh of particles similar to a pile of marbles glued together. Each adjacent pair
+        of particles has a bond strength which can be weakened by contact forces. After this strength dips below a specified threshold, the particles are considered
+        broken apart. When contiguous areas are broken off, shards begin to form. Randomness is inforced by requiring that a contact force be passed along particle to
+        particle in a randomly selected direction with the force growing weaker through each particle. After considering this approach, we concluded that
+        although this would deliver desirable results, we could refactor and simplify the algorithm and underlying data structures since we are only considering
+        simulation for a thing glass plane. As a result, we could work in 2-dimensional space and extrapolate to 3-dimensional space with little error, allowing us
+        to not need to use a 3-dimensional particle-mesh representation. </p>
+
+        <p>We then considered just using a 2-dimensional version of the particle mesh; however, we believed that we could further simplify the design without
+        losing any realism. The main idea was that we could maintain realism by finding a new way to introduce randomness into our model with carefully designed
+        heuristics. </p>
+
+    <br>
+
+    <h2 align="center">Results</h2>
+    <br>
+
+    <h2 align="center">References</h2>
+    <br>
+
+    <h2 align="center">Contributions of Each Team Member</h2>
+
+      <h3>William Peng</h3>
+      <h3>Christopher Amezquita</h3>
+      <h3>Michelle Grace Wang</h3>
+  </html>
