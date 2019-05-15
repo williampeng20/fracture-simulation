@@ -43,17 +43,23 @@
       and removing the original glass pane object. Lastly, we want to appropriately apply physics to each shard object separately at the
       right time.</p>
 
+      <br>
+      <h3 align="center">Detecting Contact Point and Force</h3>
+      <br>
+
       <p>The first step is simple as we only need to compute our impact location and contact force exerted onto the glass plane. Our impact
         location, vec_p, can be computed using linear algebra in 3-dimensional space. If we let vec_o be the origin of our stressor and vec_d
         be the the direction of its travel. We know that, for some vec_p_prime being any point on the plane and vec_n being the normal to our
         glass plane, then (vec_p - vec_p_prime) dot vec_n = 0 by the definition of a plane. We know that as long as the stressor is moving in
         the direction of our plane, then vec_o + t * vec_d must be equal to vec_p for some real and non-negative value t. Therefore, letting
-        vec_o + t * vec_d = vec_p, substituting into our plane equation and solving for t and then kms ... we find vec_p <br>
-
-        NOTE: LETS CLEAN THIS UP with mathML or some shit like that<br>
-        Next, we comput the force as f = ma. We are now ready to pass contact force and contact point as parameters to our fracture
-        generation function. </p>
+        vec_o + t * vec_d = vec_p, substituting into our plane equation and solving for t, we get
+        vec_p = vec_o + vec_d * ((vec_p_prime - vec_o) dot vec_n) / (vec_d dot vec_n).Next, we comput the force as f = ma. We are now ready to
+        ass contact force and contact point as parameters to our fracture generation function.The values m and a are specified as inputs. </p>
       <p>
+
+      <br>
+      <h3 align="center">Researching Fracturing</h3>
+      <br>
 
       <p>We wanted to implement a fracturing algorithm that yielded realistic results so we read several research papers describing mostly high-level
         ideas on how this could be implemented. The paper that had the most influence on our initial design, titled dlkafldf, aimed to reduce the typical
@@ -69,10 +75,39 @@
 
         <p>We then considered just using a 2-dimensional version of the particle mesh; however, we believed that we could further simplify the design without
         losing any realism. The main idea was that we could maintain realism by finding a new way to introduce randomness into our model with carefully designed
-        heuristics. </p>
+        heuristics. We researched Vornoi fracturing patterns which use a set of randomized reference points to construct realistic shard shapes. This gave us the
+        idea of maintaining our randomness by randomizing the locations of our particles in the mesh and instead of needing to calculate breaking points by linearly
+        traversing adjacent particles, we could now use these random particle positions as garunteed breaking point references which essentially reduces the complexity
+        of the process. The realism of this method would then come down to how we connected the particles (ie. decided where our fracture lines were), deciding
+        on a pdf for randomly sampling our particle points and what sample rate to use. </p>
+
+        <br>
+        <h3 align="center">Particle Sampling Algorithm</h3>
+        <br>
+        <p>Our goal for our particle distribution was to have the majority of the points clustered at the the contact point and be distributed roughly evenly at any
+          given radius going outward in all directions. We sampled two random values using Python's random.uniform(low, high) function. We sampled a theta value
+          between 0 and 2pi representing the direction originating at the contact point and a radius value between 0 and 1. To bias our points towards the contact point,
+          we used a pdf of x^9. Our final sampled point is contact_point + Vector(cos(theat), sin(theta), contact_point.z) * radius * max(pan height, pane width) * impact_force / k
+          for some dampening constant k. In order to only sample points on the glass pane, we simply reject and recompute and samples out of bounds. The number of points we
+          compute is also proportional to the impact force which is impact_force * alpha for some constant alpha. </p>
+
+        <br>
+        <h3 align="center">Computing Fracturing</h3>
+        <br>
+        <p>We now wish to form shards out of these particles using them as vertices for our shard shapes. We aim to connect them in a way that appears like a vague ripple effect
+        coming out of the contact point center while minimizing the complexity in determining the locations and boundaries of each shard and preventing overlap or gaps. Since the
+        particles are alraedy scattered randomly, we can utilize heuristics for shard approximation to minimize complexity without sacrificing realism. Given our total particle
+        sample set, we compute two subsets: the inner set and the outer set. The inner set is computed as points belonging to the convex hull of our entire sample set using
+        Jarvis's March algorithm efficiently in O(nlogn) time. We then comopute random points along the edges of the pane using linear interpolation between the corners. The cardinality
+        of this edge set is directly proportional to the intial size of our inner set. We then let the larger of these two sets be the primary set and the smaller be the secondary set. For
+        each </p>
+        <br>
+        <h3 align="center">Resulting Kinematics</h3>
+        <br>
+        <p></p>
+
 
     <br>
-
     <h2 align="center">Results</h2>
     <br>
 
