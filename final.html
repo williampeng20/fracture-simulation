@@ -35,7 +35,11 @@
 
     <h2 align="center">Technical Approach</h2>
 
-      <p>Describe blender and stuff here...</p>
+      <p>We used Blender to render our simulation. We were able to implement the simulation functionality using Python scripts through Blender's API.
+         Blender allows for custom scene objects which gives room for close control over object behavior and underlying data representation. Blender only
+         requires that verticies and faces be specified in order to render an object, handling path tracing, texture mapping, rigid body collision physics,
+         and basic kinematics on its own. A scene is described through a core main loop involving instantiating objects and describing their behavior frame by
+         frame.</p>
 
       <p>Our approach at a high level can be broken down into a few key steps. Given two Blender objects, one representing our glass pane
       and representing our stressor, we first need to determine the force of this impact and the impact location. Next, we precompute
@@ -99,12 +103,52 @@
         particles are alraedy scattered randomly, we can utilize heuristics for shard approximation to minimize complexity without sacrificing realism. Given our total particle
         sample set, we compute two subsets: the inner set and the outer set. The inner set is computed as points belonging to the convex hull of our entire sample set using
         Jarvis's March algorithm efficiently in O(nlogn) time. We then comopute random points along the edges of the pane using linear interpolation between the corners. The cardinality
-        of this edge set is directly proportional to the intial size of our inner set. We then let the larger of these two sets be the primary set and the smaller be the secondary set. For
-        each </p>
+        of this edge set is directly proportional to the intial size of our inner set. Note that the outer set is also a convex hull when considering the edge points to be part of the
+        total set. We then let the larger of these two sets be the primary set and the smaller be the secondary set. For each adjacent pair of points in the primary set, alpha = {a0, a1},
+        we calculate beta = {b0, b1} where b0 is the closest point in the secondary set to a0 and b1 is the closest point in the secondary set to a1. We allow |beta| = 1 if b0 = b1. We then
+        let set gamma be all points on the secondary set that exist between b0 and b1 (ie. every point reached if you traverse from b0 to b1 along the secondary convex hull, exclusive). Gamma
+        may be an empty set if b0 and b1 are adjacent or the same point. We let Frag = {alpha U beta U gamma} and uses these points to define a unique fragment. Once we have gone through every
+        adjacent pair in the the primary set we then delete the points in the outer and inner sets from the total sample set. We then set the outer set to be the inner set and recompute inner set
+        as the convex hull of the remaining points. We repeat this process until we end with no points in the inner set. At the point of ending, we check how many points are in the outer set. If it
+        is less than three, we are done. If it is 3 or more, we let the outer set be the last vertex points for the last fragment. By the time our algorithm terminates, we will have divided our entire
+        glass pane into seemingly random shards at which point we have finished precomputing our fracturing.
+        </p>
+
         <br>
-        <h3 align="center">Resulting Kinematics</h3>
+        <p>Below is a basic visualization of what this process looks like (showing only the first fragment formed at each level).</p>
+        <table style="text-align: center">
+            <tr>
+                <td>
+                    <img src=images/step1.PNG>
+                </td>
+                <td>
+                    <img src=images/step2.PNG>
+                </td>
+                <td>
+                    <img src=images/step3.PNG>
+                </td>
+            </tr>
+            <tr>
+              <td>
+                  <img src=images/step4.PNG>
+              </td>
+              <td>
+                  <img src=images/step5.PNG>
+              </td>
+            </tr>
+        </table>
         <br>
-        <p></p>
+        <p>Due to the nature of convex hulls, the patter appears like a ripple effect coming out of the contact point but without appearing uniform which is exactly what we wanted. The biggest
+        challenge in writing this algorithm was properly constructing our 2-dimensional shards using the Blender API. The API requires that the vertices be passed in counterclockwise so our intial
+        solution was to write an algorithm to order an array of arbitrary points that we could repeatedly call at each shard creation step. This proved to be close to impossible when considering the
+        possibility of convex shapes. Our final solution was to initially order our convex hull's in either a clockwise or counterclocwise manner and take advantage of this fact as this effectively
+        limited the ordering to one of two possiblities which we could decide very quickly depending on wheter our primary was the inner or outer set. </p>
+        <br>
+        <h3 align="center">Finishing Steps</h3>
+        <br>
+        <p>At this point, we can extrapolate to 3-dimensional space after finishing our computations in 2-dimensional space. At a high level, this looksl ike copying our two dimensional plane shards with a slight
+        offset to the orignal position and then connecting respective vertices to create a 3-dimensional object. We then use Blender to compute the new centers of mass for each shard and apply rigid body active
+        and passive physics at the time of contact to complete our simulation. </p>
 
 
     <br>
@@ -113,10 +157,17 @@
 
     <h2 align="center">References</h2>
     <br>
+    Küçükyılmaz, Ayşe, and Ӧzgüç, Bülent H. "An Animation System for Fracturing of Rigid Objects." <i>Computer and Information Sciences - ISCIS 2005: 20th International Symposium, Istanbul, Turkey,
+        October 26-28, 2005. Proceedings</i>. 2005. <br>
+    Su, Jonathon, et al. "Energy Stability and Fracture for Frame Rate Rigid Body Simulations." <i>ACM SIGGRAPH Symposium on Computer Animation</i>. 2009. <br>
+    Sara C. Schvartzman and Miguel A. Otaduy. "Physics-Aware Voronoi Fracture with Example-Based Acceleration." <i>Journal of Computer Graphics Techniques</i>. 2014.
+
 
     <h2 align="center">Contributions of Each Team Member</h2>
 
       <h3>William Peng</h3>
-      <h3>Christopher Amezquita</h3>
+
       <h3>Michelle Grace Wang</h3>
+
+      <h3>Christopher Amezquita</h3>
   </html>
